@@ -83,7 +83,7 @@ def load_ratings():
     # Read u.rating file and insert data
     for row in open("seed_data/u.data"):
         row = row.rstrip()
-        movie_id, user_id, score, _ = row.split("\t")
+        user_id, movie_id, score, _ = row.split("\t")
 
         rating = Rating(movie_id=movie_id,
                         user_id=user_id,
@@ -112,15 +112,27 @@ def set_val_user_id():
 def set_val_movie_id():
     """Set value for the next movie_id after seeding database"""
 
-    # Get the Max user_id in the database
+    # Get the Max movie_id in the database
     result = db.session.query(func.max(Movie.movie_id)).one()
     max_id = int(result[0])
 
-    # Set the value for the next user_id to be max_id + 1
+    # Set the value for the next movie_id to be max_id + 1
     query = "SELECT setval('movies_movie_id_seq', :new_id)"
     db.session.execute(query, {'new_id': max_id + 1})
     db.session.commit()
 
+
+# def set_val_rating_id():
+#     """Set value for the next rating_id after seeding database"""
+
+#     # Get the Max rating_id in the database
+#     result = db.session.query(func.max(Rating.rating_id)).one()
+#     max_id = int(result[0])
+
+#     # Set the value for the next rating_id to be max_id + 1
+#     query = "SELECT setval('ratings_rating_id_seq', :new_id)"
+#     db.session.execute(query, {'new_id': max_id + 1})
+#     db.session.commit()
 
 if __name__ == "__main__":
     connect_to_db(app)
@@ -134,3 +146,4 @@ if __name__ == "__main__":
     load_ratings()
     set_val_user_id()
     set_val_movie_id()
+    # set_val_rating_id()
