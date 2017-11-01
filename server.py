@@ -38,6 +38,78 @@ def user_list():
     return render_template("user_list.html", users=users)
 
 
+@app.route("/user-page/<user_id>")
+def user_page(user_id):
+    """Show user details."""
+
+    user = User.query.filter(User.user_id == user_id).first()
+    print user
+
+    age = user.age
+    zipcode = user.zipcode
+
+    user_ratings = user.ratings
+
+    return render_template("user-page.html",
+                           user_id=user_id,
+                           age=age,
+                           zipcode=zipcode,
+                           ratings=user_ratings)
+
+
+@app.route("/movies")
+def movie_list():
+    """Show list of movies"""
+
+    movies = Movie.query.filter(Movie.movie_id != 267).order_by("title").all()
+
+    return render_template("movie_list.html", movies=movies)
+
+
+@app.route("/movie-page/<movie_id>")
+def movie_page(movie_id):
+    """Show movie details."""
+
+    movie = Movie.query.filter(Movie.movie_id == movie_id).first()
+
+    m_ratings = movie.ratings
+
+    return render_template("movie-info.html",
+                           movie=movie,
+                           ratings=m_ratings)
+
+
+@app.route("/process-rating/<movie_id>", methods=["POST"])
+def process_rating(movie_id):
+
+    n_rating = request.form.get("new_rating")
+
+    user_id = session['user_id']
+
+    u_rating = Rating.query.filter(Rating.user_id == user_id &
+                                   Rating.movie_id == movie_id).first()
+    url = "/movie-page/" + str(movie_id)
+    if u_rating:
+        #update rating
+        u_rating.score = n_rating
+
+        db.session.commit()
+        flash('Your rating was successfully updated.')
+        return redirect(url)
+
+    else:
+    #add new rating
+        new_rating = Rating(movie_id=movie_id,
+                            user_id=user_id,
+                            score=n_rating,)
+
+        db.session.add(new_rating)
+        db.session.commit()
+
+        flash('Your rating was successfully added.')
+        return redirect(url)
+
+
 @app.route("/register", methods=["GET"])
 def register_form():
     """Shows user registration form."""
@@ -85,7 +157,8 @@ def login_process():
     if user.password == password:
         session['user_id'] = user.user_id
         flash('You have successfully logged in...woohoo!')
-        return redirect("/")
+        url = "/user-page/" + str(user.user_id)
+        return redirect(url)
     else:
         flash('Incorrect password, please try again')
         return redirect("/login")
@@ -115,6 +188,5 @@ if __name__ == "__main__":
 
     # Use the DebugToolbar
     DebugToolbarExtension(app)
-
 
     app.run(port=5000, host='0.0.0.0')
