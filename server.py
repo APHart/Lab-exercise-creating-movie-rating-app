@@ -25,7 +25,7 @@ def index():
     """Homepage."""
     # a = jsonify([1,3])
     # return a
-    session['user_id'] = None
+    # session['user_id'] = None tried this but not correct
 
     return render_template("homepage.html")
 
@@ -56,37 +56,50 @@ def register_process():
     # print users[0]
     if user:
         flash('That email address is already registered, please go to log in.')
-        return redirect("/register")
+        return redirect("/login")
     new_user = User(email=email, password=password)
     db.session.add(new_user)
     db.session.commit()
+    flash('Successfully registered.')
     return redirect("/")
 
 
 @app.route("/login", methods=["GET"])
 def login():
     """User account login."""
-
-    email = request.args.get("email")
-    password = request.args.get("password")
-
-    user = User.query.filter(User.email == email).first()
-
-    if user.email is not None:
-
-        if user.password == password:
-            session['user_id'] = user.user_id
-            flash('You have successfully logged in...woohoo!')
-            return redirect("/")
-
     return render_template("login.html")
 
 
-@app.route("/logout")
+@app.route("/login", methods=["POST"])
+def login_process():
+    """User account login process."""
+
+    email = request.form.get("email")
+    password = request.form.get("password")
+
+    user = User.query.filter(User.email == email).first()
+    if not user:
+        flash('This email is not registered, please register.')
+        return redirect("/register")
+
+    if user.password == password:
+        session['user_id'] = user.user_id
+        flash('You have successfully logged in...woohoo!')
+        return redirect("/")
+    else:
+        flash('Incorrect password, please try again')
+        return redirect("/login")
+
+
+@app.route("/logout", methods=["POST"])
 def logout():
     """User account logout."""
+    # session.pop removes user_id key/value from session, does not set value to none
+    # session.pop('user_id', None)
+    # print session['user_id']
 
-    session.pop('user_id', None)
+    #delete user_id from session
+    del session['user_id']
     flash('You have successfully logged out...bye!')
 
     return redirect("/")
