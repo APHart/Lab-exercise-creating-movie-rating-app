@@ -61,7 +61,7 @@ def user_page(user_id):
 def movie_list():
     """Show list of movies"""
 
-    movies = Movie.query.filter(Movie.movie_id != 267).order_by("title").all()
+    movies = Movie.query.order_by("title").all()
 
     return render_template("movie_list.html", movies=movies)
 
@@ -72,42 +72,45 @@ def movie_page(movie_id):
 
     movie = Movie.query.filter(Movie.movie_id == movie_id).first()
 
-    m_ratings = movie.ratings
+    if movie:
 
-    return render_template("movie-info.html",
-                           movie=movie,
-                           ratings=m_ratings)
+        m_ratings = movie.ratings
+
+        return render_template("movie-info.html",
+                               movie=movie,
+                               ratings=m_ratings)
+    else:
+        flash("There's nothing there. Pick a movie.")
+        return redirect("/movies")
 
 
-@app.route("/process-rating/<movie_id>", methods=["POST"])
-def process_rating(movie_id):
+@app.route("/process-rating", methods=["POST"])
+def process_rating():
 
-    n_rating = request.form.get("new_rating")
-
+    movie_id = request.form.get("movie_id")
+    print movie_id
+    new_score = request.form.get("new_rating")
     user_id = session['user_id']
 
-    u_rating = Rating.query.filter(Rating.user_id == user_id &
-                                   Rating.movie_id == movie_id).first()
-    url = "/movie-page/" + str(movie_id)
-    if u_rating:
+    user_rating = Rating.query.filter(Rating.user_id == user_id,
+                                      Rating.movie_id == movie_id).first()
+
+    if user_rating:
         #update rating
-        u_rating.score = n_rating
-
-        db.session.commit()
+        user_rating.score = new_score
         flash('Your rating was successfully updated.')
-        return redirect(url)
-
     else:
     #add new rating
         new_rating = Rating(movie_id=movie_id,
                             user_id=user_id,
-                            score=n_rating,)
+                            score=new_score,)
 
         db.session.add(new_rating)
-        db.session.commit()
-
         flash('Your rating was successfully added.')
-        return redirect(url)
+
+    db.session.commit()
+    url = "/movie-page/" + str(movie_id)
+    return redirect(url)
 
 
 @app.route("/register", methods=["GET"])
