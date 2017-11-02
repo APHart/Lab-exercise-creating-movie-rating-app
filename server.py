@@ -69,16 +69,19 @@ def movie_list():
 @app.route("/movie-page/<movie_id>")
 def movie_page(movie_id):
     """Show movie details."""
+    user_id = session['user_id']
 
     movie = Movie.query.filter(Movie.movie_id == movie_id).first()
-
+    user_rating = Rating.query.filter(Rating.user_id == user_id,
+                                      Rating.movie_id == movie_id).first()
     if movie:
 
         m_ratings = movie.ratings
 
         return render_template("movie-info.html",
                                movie=movie,
-                               ratings=m_ratings)
+                               ratings=m_ratings,
+                               user_rating=user_rating)
     else:
         flash("There's nothing there. Pick a movie.")
         return redirect("/movies")
@@ -101,6 +104,8 @@ def process_rating():
         flash('Your rating was successfully updated.')
     else:
     #add new rating
+        # show('new_rating')
+        # hide('update_rating')
         new_rating = Rating(movie_id=movie_id,
                             user_id=user_id,
                             score=new_score,)
