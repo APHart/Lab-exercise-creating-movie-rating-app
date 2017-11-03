@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+
+    <h2>Title: {{ movie.title }}</h2>
+    <br>
+    <h3>Release Date: {{ movie.released_at }}</h3>
+    <br>
+    <!-- Current date display on page is not very human friendly -->
+    <h3>IMDB Link: <a href="{{ movie.imdb_url }}">{{ movie.title }}</a></h3>
+    <br>
+    <!-- Add/Update Rating Form -->
+    {% if 'user_id' in session %}
+        {% if not user_rating %}
+            <h3 id="new_rating">Enter New Rating:</h3>
+        {% endif %}
+        {% if user_rating %}
+            <h3 id="update_rating">Update Rating:</h3>
+            <h4> Previous Rating: {{ user_rating.score }}</h4>
+        {% endif %}
+        <form action="/process-rating" method="POST">
+            <select name="new_rating">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+            <input type="hidden" name="movie_id" value="{{ movie.movie_id }}">
+            <input type="submit" value="Rate It!">
+        </form>
+    {% endif %}
+
+    <br>
+    <h2>User Ratings</h2>
+    <ul>
+      {% for rating in ratings %}
+        <li>Rating: {{ rating.score }}, User: {{ rating.user_id }}</li>
+      {% endfor %}
+    </ul>
+{% endblock %}
