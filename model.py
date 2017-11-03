@@ -1,7 +1,7 @@
 """Models and database functions for Ratings project."""
 
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from correlation import pearson
 
 # This is the connection to the PostgreSQL database; we're getting this through
 # the Flask-SQLAlchemy helper library. On this, we can find the `session`
@@ -80,14 +80,48 @@ class Rating(db.Model):
 ##############################################################################
 # Helper functions
 
-def connect_to_db(app):
+def connect_to_db(app, db_uri="postgresql:///ratings"):
     """Connect the database to our Flask app."""
 
     # Configure to use our PstgreSQL database
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///ratings'
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.app = app
     db.init_app(app)
+
+
+def example_data():
+    """create example data for the test database."""
+
+    u1 = User(user_id=666,
+              email='test@test.com',
+              password='Password',
+              age=50,
+              zipcode='94117')
+
+    u2 = User(user_id=420,
+              email='me@email.com',
+              password='Secret',
+              age=42,
+              zipcode='98346')
+
+    m1 = Movie(movie_id=1,
+               title='Killer Cupcakes',
+               released_at='1995-01-01 00:00:00',
+               imdb_url='http://www.imbd/killercupcakes.com')
+
+    m2 = Movie(movie_id=2,
+               title='Raspberry Rampage',
+               released_at='1994-01-01 00:00:00',
+               imdb_url='http://www.imbd/raspramp.com')
+
+    r1 = Rating(rating_id=1, movie_id=1, user_id=666, score=4)
+    r2 = Rating(rating_id=2, movie_id=2, user_id=666, score=1)
+    r3 = Rating(rating_id=3, movie_id=1, user_id=420, score=5)
+    r4 = Rating(rating_id=4, movie_id=2, user_id=420, score=3)
+
+    db.session.add_all([u1, u2, m1, m2, r1, r2, r3, r4])
+    db.session.commit()
 
 
 if __name__ == "__main__":

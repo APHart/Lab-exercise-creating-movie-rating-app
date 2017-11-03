@@ -69,7 +69,11 @@ def movie_list():
 @app.route("/movie-page/<movie_id>")
 def movie_page(movie_id):
     """Show movie details."""
-    user_id = session['user_id']
+
+    if 'user_id' in session:
+        user_id = session['user_id']
+    else:
+        user_id = None
 
     movie = Movie.query.filter(Movie.movie_id == movie_id).first()
     user_rating = Rating.query.filter(Rating.user_id == user_id,
